@@ -72,7 +72,6 @@ def clean_campaign_data():
 
     final_df = pd.concat(dataframes, ignore_index=True)
 
-    # Procesar client.csv
     client = final_df[["client_id", "age", "job", "marital", "education", "credit_default", "mortgage"]]
     client["job"] = client["job"].str.replace(".", "").str.replace("-", "_")
     client["education"] = client["education"].replace("unknown", pd.NA)
@@ -81,25 +80,19 @@ def clean_campaign_data():
     client["credit_default"] = client["credit_default"].apply(lambda x: 1 if x == "yes" else 0)
     client["mortgage"] = client["mortgage"].apply(lambda x: 1 if x == "yes" else 0)
 
-    # Procesar campaign.csv
     campaign = final_df[["client_id", "number_contacts", "contact_duration", "previous_campaign_contacts", "previous_outcome", "campaign_outcome", "month", "day"]]
     campaign["month"] = campaign["month"].apply(lambda x: month_to_number.get(x.lower(), "00"))
     campaign["previous_outcome"] = campaign["previous_outcome"].apply(lambda x: 1 if x == "success" else 0)
     campaign["campaign_outcome"] = campaign["campaign_outcome"].apply(lambda x: 1 if x == "yes" else 0)
     
-    # Asegurar que month y day tengan el formato adecuado utilizando .loc[]
-    campaign.loc[:, "month"] = campaign["month"].astype(str).str.zfill(2)  # Usa .loc para evitar el warning
-    campaign.loc[:, "day"] = campaign["day"].astype(str).str.zfill(2)  # Usa .loc para evitar el warning
+    campaign.loc[:, "month"] = campaign["month"].astype(str).str.zfill(2)  
+    campaign.loc[:, "day"] = campaign["day"].astype(str).str.zfill(2)  
     
-    # Crear la columna last_contact_day utilizando .loc[]
     campaign.loc[:, "last_contact_date"] = "2022-" + campaign["month"] + "-" + campaign["day"]
-    # Eliminar las columnas month y day
     campaign = campaign.drop(['month', 'day'], axis=1)
 
-    # Procesar economics.csv
     economic = final_df[["client_id", "cons_price_idx", "euribor_three_months"]]
 
-    # Guardar los resultados en archivos CSV
     output_path = os.path.join("files", "output")
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
